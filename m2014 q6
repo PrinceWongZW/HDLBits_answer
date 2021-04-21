@@ -1,0 +1,30 @@
+module top_module (
+    input clk,
+    input reset,     // synchronous reset
+    input w,
+    output z);
+    
+    parameter sa = 3'b000, sb = 3'b001, sc = 3'b010, sd = 3'b011, se = 3'b100, sf = 3'b101;
+    reg [2:0] state, nstate;
+    
+    always @ (posedge clk) begin
+        if(reset)
+            state <= sa;
+        else
+            state <= nstate;
+    end
+    
+    always @ (*) begin
+        case(state)
+            sa : nstate = w ? sa : sb;
+            sb : nstate = w ? sd : sc;
+            sc : nstate = w ? sd : se;
+            sd : nstate = w ? sa : sf;
+            se : nstate = w ? sd : se;
+            sf : nstate = w ? sd : sc;
+        endcase
+    end
+    
+    assign z = (state==se) || (state==sf);
+
+endmodule
