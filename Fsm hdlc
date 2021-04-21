@@ -1,0 +1,38 @@
+module top_module(
+    input clk,
+    input reset,    // Synchronous reset
+    input in,
+    output disc,
+    output flag,
+    output err);
+    
+    parameter sr = 4'd0, s1 = 4'd1, s2 = 4'd2, s3 = 4'd3, s4 = 4'd4, s5 = 4'd5, s6 = 4'd6, s7 = 4'd7, sd = 4'd8, sf = 4'd9;
+    reg [3:0] state, nstate;
+    
+    always @ (posedge clk) begin
+        if(reset)
+            state <= sr;
+        else
+            state <= nstate;
+    end
+    
+    always @ (*) begin
+        case(state)
+            sr : nstate = in ? s1 : sr;
+            s1 : nstate = in ? s2 : sr;
+            s2 : nstate = in ? s3 : sr;
+            s3 : nstate = in ? s4 : sr;
+            s4 : nstate = in ? s5 : sr;
+            s5 : nstate = in ? s6 : sd;
+            s6 : nstate = in ? s7 : sf;
+            s7 : nstate = in ? s7 : sr;
+            sd : nstate = in ? s1 : sr;
+            sf : nstate = in ? s1 : sr;
+        endcase
+    end
+    
+    assign disc = state==sd;
+    assign flag = state==sf;
+    assign err = state==s7;
+
+endmodule
