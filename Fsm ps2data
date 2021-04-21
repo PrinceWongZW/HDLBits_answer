@@ -1,0 +1,45 @@
+module top_module(
+    input clk,
+    input [7:0] in,
+    input reset,    // Synchronous reset
+    output [23:0] out_bytes,
+    output done); //
+
+    parameter s0 = 0, s1 = 1, s2 = 2, s3 = 3;
+    reg [1:0] state, nstate;
+    // FSM from fsm_ps2
+    always @ (*) begin
+        case(state)
+            s0 : nstate = in[3] ? s1 : s0;
+            s1 : nstate = s2;
+            s2 : nstate = s3;
+            s3 : nstate = in[3] ? s1 : s0;
+        endcase
+    end
+    
+    always @ (posedge clk) begin
+        if(reset)
+            state <= s0;
+        else begin
+            state <= nstate;
+            //case(nstate)
+            //    s1 : out_bytes[23:16] <= in;
+            //    s2 : out_bytes[15:8] <= in;
+            //    s3 : out_bytes[7:0] <= in;
+            //endcase
+        end
+    end
+    
+    assign done = state==s3;
+
+    // New: Datapath to store incoming bytes
+    always @ (posedge clk) begin
+        case(nstate)
+            s1 : out_bytes <= (out_bytes << 8) | in;
+            s2 : out_bytes <= (out_bytes << 8) | in;
+            s3 : out_bytes <= (out_bytes << 8) | in;
+            default : out_bytes <= 0;
+        endcase
+    end
+    
+endmodule
