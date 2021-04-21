@@ -1,0 +1,46 @@
+module top_module(
+    input clk,
+    input in,
+    input reset,    // Synchronous reset
+    output [7:0] out_byte,
+    output done
+); //
+    parameter idle = 12'h001, b0 = 12'h002, b7 = 12'h200, fnsh = 12'h400, pre = 12'h800;
+    reg [11:0] state, nstate;
+    reg [7:0] out_buff;
+    // Use FSM from Fsm_serial
+    always @ (*) begin
+        case(state)
+            idle : nstate = ~in ? b0 : idle;
+            b7 : nstate = in ? fnsh : pre;
+            fnsh : nstate = ~in ? b0 : idle;
+            pre : nstate = in ? idle : pre;
+            default : nstate = state << 1;
+        endcase
+    end
+
+    always @ (posedge clk) begin
+        if(reset)
+            state <= idle;
+        else
+            state <= nstate;
+    end
+    
+    assign done = state==fnsh;
+    
+    // New: Datapath to latch input bits.
+    always @ (posedge clk) begin
+        if(nstate==12'h004 || nstate==12'h008 || nstate==12'h010 || nstate==12'h020 || nstate==12'h040 || nstate==12'h080 || nstate==12'h100 || nstate==12'h200)
+            out_buff <= (out_buff<<1) | in;
+    end
+    
+    assign out_byte[0] = out_buff[7];
+    assign out_byte[1] = out_buff[6];
+    assign out_byte[2] = out_buff[5];
+    assign out_byte[3] = out_buff[4];
+    assign out_byte[4] = out_buff[3];
+    assign out_byte[5] = out_buff[2];
+    assign out_byte[6] = out_buff[1];
+    assign out_byte[7] = out_buff[0];
+
+endmodule

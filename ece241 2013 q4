@@ -1,0 +1,63 @@
+module top_module (
+    input clk,
+    input reset,
+    input [3:1] s,
+    output fr3,
+    output fr2,
+    output fr1,
+    output dfr
+); 
+    parameter A1 = 0, B1 = 1, B2 = 2, C1 = 3, C2 = 4, D2 = 5;
+    reg [3:0] state,nstate;
+    
+    always @ (*) begin
+        case(state)
+            A1 : begin
+                if(s==3'b111) nstate = state;
+                else nstate = B2;
+            end
+            
+            B1 : begin
+                if(s==3'b111) nstate = A1;
+                else if (s==3'b001) nstate = C2;
+                else nstate = state;
+            end
+            
+            B2 : begin
+                if(s==3'b111) nstate = A1;
+                else if (s==3'b001) nstate = C2;
+                else nstate = state;
+            end
+            
+            C1 : begin
+                if(s==3'b011) nstate = B1;
+                else if(s==3'b000) nstate = D2;
+                else nstate = state;
+            end
+
+            C2 : begin
+                if(s==3'b011) nstate = B1;
+                else if(s==3'b000) nstate = D2;
+                else nstate = state;
+            end
+            
+            D2 : begin
+                if(s==3'b001) nstate = C1;
+                else nstate = state;
+            end
+        endcase
+    end
+    
+    always @ (posedge clk) begin
+        if(reset)
+            state <= D2;
+        else
+            state <= nstate;
+    end
+    
+    assign fr1 = state!=A1;
+    assign fr2 = (state==D2) | (state==C1) | (state==C2);
+    assign fr3 = (state==D2);
+    assign dfr = (state==D2) | (state==C2) | (state==B2);
+
+endmodule

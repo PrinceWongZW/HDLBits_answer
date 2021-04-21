@@ -1,0 +1,12 @@
+module top_module (
+    input [5:0] y,
+    input w,
+    output Y1,
+    output Y3
+);
+    parameter a = 0, b = 1, c = 2, d = 3, e = 4, f = 5;
+    
+    assign Y1 = y[a]&w;
+    assign Y3 = (y[b] | y[c] | y[e] | y[f]) & ~w;
+
+endmodule
