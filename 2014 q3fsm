@@ -1,0 +1,119 @@
+module top_module (
+    input clk,
+    input reset,   // Synchronous reset
+    input s,
+    input w,
+    output z
+);
+    parameter s0 = 1'b0, s1 = 1'b1;
+    reg state, nstate;
+    
+    // window & count method
+    reg [1:0] wdct,sgct;
+    always @ (posedge clk) begin
+        if(reset) begin
+            state <= s0;
+        	wdct <= 0;
+            sgct <= 0;
+        end
+        else begin
+            state <= nstate;
+            if(state) begin
+                if(wdct==2)
+                    wdct <= 0;
+                else
+                    wdct <= wdct + 1;
+                
+                if(wdct==0) begin
+                    if(w)
+                        sgct <= 1;
+                	else
+                        sgct <= 0;
+                end
+                else begin
+                    if(w)
+                        sgct <= sgct + 1;
+                end
+            end
+            else begin
+                wdct <= 0;
+                sgct <= 0;
+            end
+        end
+    end
+    assign z = (wdct==0)&&(sgct==2);
+
+
+//    // block assignment method
+//    reg [1:0] lct, hct;
+//    always @ (posedge clk) begin
+//        if(reset) begin
+//            state <= s0;
+//       		hct = 0;
+//            lct = 0;
+//        end
+//        else begin
+//            state <= nstate;
+//            if(state) begin
+//                if((hct+lct)==3) begin
+//                	hct = 0;
+//                    lct = 0;
+//                end
+//                if(w)
+//                    hct = hct + 1;
+//                else
+//                    lct = lct + 1;
+//            end
+//            else begin
+//                hct = 0;
+//                lct = 0;
+//            end
+//        end
+//    end
+//    assign z = (hct==2)&&(lct==1);
+
+
+//    // non-block assignment method
+//    reg [1:0] lct, hct;
+//    always @ (posedge clk) begin
+//        if(reset) begin
+//            state <= s0;
+//        	hct <= 0;
+//            lct <= 0;
+//        end
+//        else begin
+//            state <= nstate;
+//            if(state) begin
+//                if((hct+lct)==3) begin
+//                    if(w) begin
+//                        hct <= 1;
+//                        lct <= 0;
+//                    end
+//                    else begin
+//                        hct <= 0;
+//                        lct <= 1;
+//                    end
+//                end
+//                else begin
+//                    if(w)
+//                        hct <= hct + 1;
+//                    else
+//                        lct <= lct + 1;
+//                end
+//            end
+//            else begin
+//                hct <= 0;
+//                lct <= 0;
+//            end
+//        end
+//    end
+//    assign z = (hct==2)&&(lct==1);
+    
+    always @ (*) begin
+        case(state)
+            s0 : nstate = s ? s1 : s0;
+            s1 : nstate = s1;
+        endcase
+    end
+
+endmodule
