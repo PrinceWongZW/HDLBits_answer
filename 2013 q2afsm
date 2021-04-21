@@ -4,5 +4,37 @@ module top_module (
     input [3:1] r,   // request
     output [3:1] g   // grant
 ); 
+    parameter sa = 2'b00, sb = 2'b01, sc = 2'b10, sd = 2'b11;
+    reg [1:0] state, nstate;
+    
+    always @ (posedge clk) begin
+        if(!resetn)
+            state <= sa;
+        else
+            state <= nstate;
+    end
+    
+    always @ (*) begin
+        case(state)
+            sa : begin
+                if(r==3'b100)
+                    nstate = sd;
+                else if(r[2:1]==2'b10)
+                    nstate = sc;
+                else if(r[1]==1)
+                    nstate = sb;
+                else
+                    nstate = sa;
+            end
+            
+            sb : nstate = r[1] ? sb : sa;
+            sc : nstate = r[2] ? sc : sa;
+            sd : nstate = r[3] ? sd : sa;
+        endcase
+    end
+    
+    assign g[3] = state==sd;
+    assign g[2] = state==sc;
+    assign g[1] = state==sb;
 
 endmodule
